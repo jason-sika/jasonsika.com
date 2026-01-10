@@ -1,4 +1,4 @@
-const API_URL = `https://pull.jasonsika.com`;
+const API_URL = `https://pull.jasonsika.com`; // Add your Last.fm API endpoint here
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const INTERVAL_MS = 10_000;
 const PREV_MAX = 5;
@@ -30,52 +30,75 @@ const htmlalbum = document.getElementById("album");
 const htmlnowplaying = document.getElementById("nowplaying");
 const htmlin = document.getElementById("in");
 
-// Fetch Apple Music artwork with animated support
-async function fetchAppleArtwork(artist = "", track = "") {
-  const key = `${artist}::${track}`;
-  if (artworkCache.has(key)) return artworkCache.get(key);
+// CODE FROM CLAUDE - FIXED
+function buildSearchUrl(artist, song, album) {
+  if (!artist || !song) {
+    console.warn("Artist and song are required, got:", { artist, song });
+    throw new Error("Artist and song are required");
+  }
 
+  const format = (str) => str.trim().replace(/\s+/g, "+");
+
+  let q = format(artist);
+
+  // Only add album if it exists and is not empty
+  if (album && album.trim() && album.trim() !== song.trim()) {
+    q += "_" + format(album);
+  }
+
+  q += "_" + format(song);
+
+  console.log("Built search URL query:", q);
+  return `https://pull.jasonsika.com/api/search?q=${q}`;
+}
+
+async function getSongLinks(artist, song, album) {
   try {
-    const q = encodeURIComponent(`${artist} ${track}`.trim());
-    const url = `${ITUNES_SEARCH}?term=${q}&entity=song&limit=1`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`iTunes ${res.status}`);
-
-    const data = await res.json();
-    const result = data.results?.[0];
-    let artwork = result?.artworkUrl100 || "";
-
-    if (!artwork) {
-      artworkCache.set(key, "");
-      return "";
+    // Try with album first if available
+    let searchUrl = buildSearchUrl(artist, song, album);
+    let searchRes = await fetch(searchUrl);
+    
+    // If 404 and we had an album, try without album
+    if (searchRes.status === 404 && album && album.trim()) {
+      console.log("Retrying without album...");
+      searchUrl = buildSearchUrl(artist, song, null);
+      searchRes = await fetch(searchUrl);
     }
-
-    // Upgrade to higher resolution and try animated variants
-    let base = artwork.replace(/100x100bb/i, "600x600bb");
-    const root = base.replace(/\.\w+(\?.*)?$/, "");
-    const candidates = [`${root}.webp`, `${root}.gif`, `${root}.jpg`, base];
-
-    for (const candidate of candidates) {
-      try {
-        const r = await fetch(candidate, { cache: "no-store" });
-        if (!r.ok) continue;
-
-        const ct = (r.headers.get("content-type") || "").toLowerCase();
-        if (ct.startsWith("image/")) {
-          artworkCache.set(key, candidate);
-          return candidate;
-        }
-      } catch (err) {
-        continue;
-      }
+    
+    // If still 404, return null to try Last.fm fallback
+    if (searchRes.status === 404) {
+      console.log("Track not found on Spotify");
+      return null;
     }
+    
+    if (!searchRes.ok) {
+      throw new Error(`Search failed: ${searchRes.status}`);
+    }
+    
+    const searchData = await searchRes.json();
+    const spotifyUrl = searchData.url;
 
-    artworkCache.set(key, "");
-    return "";
-  } catch (err) {
-    console.warn("fetchAppleArtwork failed:", err);
-    artworkCache.set(key, "");
-    return "";
+    // Step 2: Get all platform links from Songlink
+    const songlinkRes = await fetch(
+      `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(spotifyUrl)}`
+    );
+    
+    if (!songlinkRes.ok) {
+      throw new Error(`Songlink failed: ${songlinkRes.status}`);
+    }
+    
+    const songlinkData = await songlinkRes.json();
+
+    // Extract album art from Songlink
+    const firstEntity = Object.values(songlinkData.entitiesByUniqueId)[0];
+    const albumArt = firstEntity?.thumbnailUrl || searchData.album_art;
+
+    // Return album art or null to fallback to Last.fm
+    return albumArt || null;
+
+  } catch (error) {
+    console.error('Error fetching song links:', error);
+    return null;
   }
 }
 
@@ -137,24 +160,36 @@ async function renderPreviousTracks(tracks = []) {
     prevTracks.map(async (t, i) => {
       const title = t?.name || FALLBACK.song;
       const artist = t?.artist?.["#text"] || FALLBACK.artist;
+      const album = t?.album?.["#text"] || FALLBACK.album;
       const url = t?.url || FALLBACK.url;
       const entry = document.createElement("div");
       entry.className = "songEntry";
       entry.dataset.index = String(i + 1);
 
       entry.addEventListener("click", () => {
-        window.open(url, "LastFM Previous Song", "height=400px,width=400px");
-        if (window.focus) {
+        const newWindow = window.open(url, "LastFM Previous Song", "height=400px,width=400px");
+        if (newWindow && newWindow.focus) {
           newWindow.focus();
         }
       });
 
-      const art = await fetchAppleArtwork(artist, title);
+      // Get album art - now returns string directly or null
+      const art = await getSongLinks(artist, title, album);
+      
+      // Try Last.fm image if available
+      const lastFmImage = t?.image?.[3]?.["#text"] || "";
 
       const img = document.createElement("img");
       img.className = "songCover";
-      if (art) img.src = art;
-      else img.alt = "cover";
+      
+      // Priority: Songlink/Spotify > Last.fm > Fallback
+      if (art) {
+        img.src = art;
+      } else if (lastFmImage) {
+        img.src = lastFmImage;
+      } else {
+        img.src = '../src/images/album_art.png';
+      }
 
       const textWrap = document.createElement("div");
       textWrap.className = "songText";
@@ -186,7 +221,7 @@ async function updateNowPlaying() {
     const song = track?.name || FALLBACK.song;
     const artist = track?.artist?.["#text"] || FALLBACK.artist;
     const album = track?.album?.["#text"] || FALLBACK.album;
-    const image4 = track?.image?.[3]?.["#text"] || FALLBACK.image;
+    const image4 = track?.image?.[3]?.["#text"] || "";
     const url = track?.url || FALLBACK.url;
     const nowplaying = track?.["@attr"]?.nowplaying === "true";
 
@@ -205,12 +240,16 @@ async function updateNowPlaying() {
     if (lockedSongKey !== currentKey) {
       lockedSongKey = null;
 
-      // Try to get better Apple Music artwork
-      const appleArt = await fetchAppleArtwork(artist, song);
-      if (appleArt) {
-        state.image = appleArt;
-      } else {
+      // Try to get better album artwork
+      const songLinkArt = await getSongLinks(artist, song, album);
+      
+      // Priority: Songlink/Spotify > Last.fm > Fallback
+      if (songLinkArt && songLinkArt !== '../src/images/album_art.png') {
+        state.image = songLinkArt;
+      } else if (image4) {
         state.image = image4;
+      } else {
+        state.image = '../src/images/album_art.png';
       }
     }
 
@@ -227,7 +266,7 @@ async function updateNowPlaying() {
       htmlnowplaying.addEventListener("click", () => {
         const newWindow = window.open(
           url,
-          "LastFM Previous Song",
+          "LastFM Now Playing",
           "height=400,width=400"
         );
 
@@ -274,6 +313,11 @@ async function updateNowPlaying() {
       nowplaying,
       image: state.image,
     });
+
+    // Clear artwork cache after all fetches complete
+    artworkCache.clear();
+    console.log("Artwork cache cleared");
+
   } catch (error) {
     console.error("Error fetching now playing data:", error);
   }

@@ -9,25 +9,18 @@
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 
-    <!-- CSS -->
+    <!-- DONATION CSS -->
+    <link rel="stylesheet" type="text/css" href="../src/page_specific_css/donate.css">
     <link rel="stylesheet" type="text/css" href="../src/page_specific_css/main.css">
-
-    <!-- GRID CSS -->
-    <link rel="stylesheet" type="text/css" href="../src/general_css/gridlayout.css">
-    <link rel="stylesheet" type="text/css" href="../src/general_css/gridinteraction.css">
-    <link rel="stylesheet" type="text/css" href="../src/general_css/gridstyles.css">
-
-    <!-- SCRIPTS -->
-    <script src="../src/scripts/greet.js" defer="true"></script>
-    <script src="../src/scripts/nowplaying1.js" defer="true"></script>
-
+    
     <!-- METADATA -->
     <link rel="icon" type="image/png" href="../assets/images/Icon.png">
-    <title>Home — Jason Sika</title>
+    <title>Support — Jason Sika</title>
 </head>
 
 <body>
     <main>
+        <!-- Header Section (Matches Index) -->
         <div class="top">
             <svg width="116" height="116" viewBox="0 0 116 116" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd"
@@ -36,80 +29,63 @@
             </svg>
             <div class="text">
                 <div class="hello-container">
-                    <p class="helloTitle" id="langDesc">Welcome in Ewe</p>
-
-                    <h1 class="Title" id="titleID">
-                        <span id="helloText">Wɔezon</span>, I'm Sika
+                    <h1 class="Title">
+                        Support Me
                     </h1>
                 </div>
-                <p class="Description">A designer based in France that creates versatile, expressive, and bold designs
-                    that catches attention.</p>
-                <div class="socials" style="display:flex; flex-direction: row; align-items: left; justify-content: left; gap: 10px;">
-                    <a href='mailto:design@jasonsika.com' target="_blank" style="color:white">Email
-                    </a>
-                    <a onclick="alert('@jasonsika')" style="color:white; cursor: pointer;">Discord
-                    </a>
-                    <a href='https://x.com/jason_sika' target="_blank" style="color:white">Twitter
-                    </a>
+                <p class="Description">Your support helps me create more expressive and bold designs. Choose a method below.</p>
+                <div class="socials" style="display:flex; flex-direction: row; align-items: left; justify-content: left; gap: 10px; margin-top: 10px;">
+                    <a href='index.html' class="back-link">← Return Home</a>
                 </div>
             </div>
         </div>
 
+        <!-- Donation Grid -->
+        <div class="donation-grid">
+            
+            <!-- PayPal -->
+            <div class="donation-card" onclick="window.open('https://paypal.me/jasonsika1', '_blank')">
+                <div class="card-content">
+                    <h1 class="gridTitle">paypal</h1>
+                    <p class="card-desc">Send support directly via PayPal.</p>
+                </div>
+            </div>
 
-        <div class="mainGrid">
-            <div class="gridItem" id="about" onclick="location.href='https://jasonsika.framer.website/aboutme'">
-                <div class="gridTop">
-                </div>
-                <div class="gridBottom">
-                    <h1 class="gridTitle">about</h1>
-                    <h2 class="gridTitle">Me</h2>
+            <!-- Ko-Fi -->
+            <div class="donation-card" onclick="window.open('https://ko-fi.com/sikavi', '_blank')">
+                <div class="card-content">
+                    <h1 class="gridTitle">ko-fi</h1>
+                    <p class="card-desc">Buy me a coffee to keep my journey going.</p>
                 </div>
             </div>
-            <div class="gridItem" id="designs" onclick="location.href='https://jasonsika.framer.website/portfolio'">
-                <div class="gridTop">
-                </div>
-                <div class="gridBottom">
-                    <h1 class="gridTitle">designs</h1>
-                </div>
-            </div>
-            <div class="gridItem" id="support" onclick="location.href='donate.html'">
-                <div class="gridTop">
-                </div>
-                <div class="gridBottom">
-                    <h1 class="gridTitle">support</h1>
-                    <h2 class="gridTitle">Me</h2>
+
+            <!-- Buy Me a Coffee (Croissant) -->
+            <div class="donation-card" onclick="window.open('https://buymeacoffee.com/designbysika', '_blank')">
+                <div class="card-content">
+                    <h1 class="gridTitle">buy me a coffee</h1>
+                    <p class="card-desc">Grab me a croissant on Buy Me a Coffee.</p>
                 </div>
             </div>
-            <div class="gridItem" id="nowplaying" onclick="location.href='music.html'">
-                <div class="gridTop">
-                    <h1 class="gridTitle">now</h1>
-                    <h2 class="gridTitle">Playing</h2>
-                </div>
-                <div class="gridBottom" id="marquee">
-                    <div class="marqueeContent">
-                        <h2 class="gridTitle" id="songname">songname</h2>
-                        <h1 class="gridTitle" id="by">by</h1>
-                        <h2 class="gridTitle" id="artist">Artist</h2>
-                        <h1 class="gridTitle" id="in">in</h1>
-                        <h2 class="gridTitle" id="album">album</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="gridItem" id="resume"
-                onclick="location.href='https://www.dropbox.com/scl/fi/3qnpfbk5ebxz1bzzmw5xk/Resume.pdf?rlkey=kk5enp54j7ji66av6bs8xso1p&st=b62wxfe5&dl=1'">
-                <div class="gridTop">
-                </div>
-                <div class="gridBottom">
-                    <h1 class="gridTitle">download</h1>
-                    <h2 class="gridTitle">Resume</h2>
-                </div>
-            </div>
+            
         </div>
+
         <footer>
             <p class="footerTitle">JASON SIKA</p>
             <p class="footerDescription">&copy; All rights reserved, 2026</p>
         </footer>
     </main>
-</body>
 
+    <script>
+        function copyToClipboard(element) {
+            const text = element.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = element.style.color;
+                element.style.color = "#ffffff";
+                setTimeout(() => {
+                    element.style.color = original;
+                }, 500);
+            });
+        }
+    </script>
+</body>
 </html>

@@ -1,0 +1,239 @@
+/* --- DONATION SPECIFIC CSS --- */
+/* Includes base styles from main.css for standalone rendering */
+
+/* ---Inter Font Setup--- */
+:root {
+  font-family: Inter, sans-serif;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+@supports (font-variation-settings: normal) {
+  :root { font-family: InterVariable, sans-serif; }
+}
+
+/* --- Base Resets & Layout (Mirrored from main.css) --- */
+* {
+    box-sizing: border-box !important;
+}
+
+html, body {
+    width: 100%;
+    margin: 0;
+    background-color: #141414;
+    color: #AFAFAF;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+main {
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    width: 100%;
+    max-width: 820px;
+    height: fit-content;
+}
+
+/* --- Typography --- */
+h1, h2, h3 {
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    margin: 0;
+}
+
+p {
+    font-family: 'InterVariable', sans-serif !important;
+    color: #AFAFAF;
+    line-height: 1.6;
+    font-size: 16px;
+    margin: 0;
+}
+
+.Title {
+    text-align: left;
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.Description {
+    text-align: left;
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.helloTitle {
+    text-align: left;
+    font-size: 20px;
+    font-weight: 300;
+}
+
+/* --- Header Section --- */
+.top {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* Increased gap slightly for better spacing */
+    align-items: center;
+}
+
+.top svg {
+    flex-shrink: 0;
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.back-link {
+    color: #AFAFAF;
+    text-decoration: none;
+    font-size: 16px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.back-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* --- Donation Grid Layout --- */
+.donation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 20px;
+    width: 100%;
+}
+
+.donation-card {
+    background-color: #1a1a1a; /* Slightly lighter than bg */
+    border: 1px solid #AFAFAF;
+    padding: 30px;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Align text to bottom like original cards */
+    min-height: 250px;
+}
+
+.donation-card:hover {
+    transform: translateY(-2px);
+    border-color: #555;
+    background-color: #222;
+}
+
+.donation-card.full-width {
+    grid-column: span 2;
+    min-height: auto;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.gridTitle {
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: lowercase; /* Matching original style */
+    line-height: 1;
+}
+
+h2.gridTitle {
+    font-weight: 300;
+    color: #888;
+}
+
+.card-desc {
+    margin-top: 10px;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* --- Crypto Specifics --- */
+.crypto-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.crypto-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    background: #0f0f0f;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #222;
+}
+
+.crypto-label {
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+}
+
+.crypto-address {
+    font-family: monospace;
+    font-size: 14px;
+    color: #AFAFAF;
+    word-break: break-all;
+    cursor: copy;
+    transition: color 0.2s;
+}
+
+.crypto-address:hover {
+    color: #fff;
+}
+
+/* --- Footer --- */
+footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.footerTitle {
+    font-style: italic;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.footerDescription {
+    font-size: 16px;
+    opacity: 0.5;
+}
+
+/* --- Responsive --- */
+@media (max-width: 700px) {
+    main {
+        padding: 20px;
+        width: 100%;
+    }
+    
+    .top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .donation-grid {
+        grid-template-columns: 1fr; /* Stack on mobile */
+    }
+    
+    .donation-card.full-width {
+        grid-column: span 1;
+    }
+}
