@@ -76,25 +76,9 @@ async function getSongLinks(artist, song, album) {
     }
     
     const searchData = await searchRes.json();
-    const spotifyUrl = searchData.url;
-
-    // Step 2: Get all platform links from Songlink
-    const songlinkRes = await fetch(
-      `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(spotifyUrl)}`
-    );
     
-    if (!songlinkRes.ok) {
-      throw new Error(`Songlink failed: ${songlinkRes.status}`);
-    }
-    
-    const songlinkData = await songlinkRes.json();
-
-    // Extract album art from Songlink
-    const firstEntity = Object.values(songlinkData.entitiesByUniqueId)[0];
-    const albumArt = firstEntity?.thumbnailUrl || searchData.album_art;
-
-    // Return album art or null to fallback to Last.fm
-    return albumArt || null;
+    // Return album art directly from API (includes Songlink art)
+    return searchData.album_art || null;
 
   } catch (error) {
     console.error('Error fetching song links:', error);
