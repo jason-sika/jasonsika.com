@@ -1,0 +1,98 @@
+.gridItem {
+    transform: scale(1);
+    transition: 0.3s ease-out;
+}
+
+.gridItem:hover {
+    transform: scale(1.2);
+    transition: 0.3s ease;
+    z-index: 10;
+}
+
+.gridItem:active {
+    transform: scale(0.95);
+    transition: 0.3s ease;
+}
+
+.mainGrid {
+    transform: scale(1);
+    transition: 0.3s ease-out;
+}
+
+.mainGrid:hover {
+    transform: scale(0.95);
+    transition: 0.3s ease;
+
+    .gridItem {
+        opacity: 0.2;
+        background-color: black;
+        transition: 0.3s ease;
+        filter: blur(5px);
+    }
+}
+
+.gridItem:hover {
+    opacity: 1 !important;
+    filter: blur(0px) !important;
+}
+
+.gridItem:hover:after {
+    content: 'Open';
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    position: absolute;
+    text-align: center;
+    bottom: -20px;
+    font-size: 12px;
+    opacity: 0.7;
+    transform: translateY(-10%);
+    transition: 0.3s ease;
+}
+
+.gridItem#about:hover:after {
+    content: 'Learn About Me, WIP page made in framer actual page coming soon';
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    position: absolute;
+    text-align: left;
+    bottom: -55px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: 0.3s ease;
+}
+
+.gridItem#designs:hover:after {
+    content: 'Previous Designs, WIP page made in framer actual page coming soon';
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    position: absolute;
+    text-align: left;
+    bottom: -20px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: 0.3s ease;
+}
+
+.gridItem#support:hover:after {
+    content: 'Im OUT OF FUNDS, please support me if you feel nice :)!';
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    position: absolute;
+    text-align: left;
+    bottom: -20px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: 0.3s ease;
+}
+
+.gridItem#nowplaying:hover:after {
+    content: 'Not Necessarly NOW playing, this is either the currently playing song or a recent song I played';
+    color: #AFAFAF;
+    font-family: 'InterVariable', sans-serif !important;
+    position: absolute;
+    text-align: left;
+    bottom: -55px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: 0.3s ease;
+}
