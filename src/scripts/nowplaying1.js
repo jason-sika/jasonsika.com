@@ -1,4 +1,4 @@
-const API_URL = `https://pull.jasonsika.com`; // Add your Last.fm API endpoint here
+const API_URL = `https://pull.jasonsika.com`; 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const INTERVAL_MS = 10_000;
 const PREV_MAX = 5;
@@ -33,8 +33,7 @@ const htmlin = document.getElementById("in");
 // CODE FROM CLAUDE - FIXED
 function buildSearchUrl(artist, song, album) {
   if (!artist || !song) {
-    console.warn("Artist and song are required, got:", { artist, song });
-    throw new Error("Artist and song are required");
+    return null;
   }
 
   const format = (str) => str.trim().replace(/\s+/g, "+");
@@ -48,7 +47,6 @@ function buildSearchUrl(artist, song, album) {
 
   q += "_" + format(song);
 
-  console.log("Built search URL query:", q);
   return `https://pull.jasonsika.com/api/search?q=${q}`;
 }
 
@@ -56,23 +54,24 @@ async function getSongLinks(artist, song, album) {
   try {
     // Try with album first if available
     let searchUrl = buildSearchUrl(artist, song, album);
+    if (!searchUrl) return null;
+    
     let searchRes = await fetch(searchUrl);
     
     // If 404 and we had an album, try without album
     if (searchRes.status === 404 && album && album.trim()) {
-      console.log("Retrying without album...");
       searchUrl = buildSearchUrl(artist, song, null);
+      if (!searchUrl) return null;
       searchRes = await fetch(searchUrl);
     }
     
     // If still 404, return null to try Last.fm fallback
     if (searchRes.status === 404) {
-      console.log("Track not found on Spotify");
       return null;
     }
     
     if (!searchRes.ok) {
-      throw new Error(`Search failed: ${searchRes.status}`);
+      return null;
     }
     
     const searchData = await searchRes.json();
@@ -117,88 +116,209 @@ async function fetchLrclibLyrics(artist = "", track = "") {
 
     return "";
   } catch (err) {
-    console.warn("fetchLrclibLyrics failed:", err);
     return "";
   }
 }
 
-// Render previous tracks
+let previousNowPlayingKey = null;
+
 async function renderPreviousTracks(tracks = []) {
   const container = document.querySelector(".previousSongs#previousSongs");
   if (!container) return;
 
-  const prevTracks = tracks
-    .filter((t) => !(t?.["@attr"]?.nowplaying === "true"))
-    .slice(0, PREV_MAX);
-  container.innerHTML = "";
+  // Filter duplicates - keep only first occurrence of each track
+  const seenTracks = new Set();
+  const uniqueTracks = [];
+  
+  for (const track of tracks) {
+    const trackKey = `${track?.artist?.["#text"] || FALLBACK.artist}::${track?.name || FALLBACK.song}`;
+    if (!seenTracks.has(trackKey)) {
+      seenTracks.add(trackKey);
+      uniqueTracks.push(track);
+    }
+  }
 
-  if (prevTracks.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "noTracks";
-    empty.textContent = "No recent tracks";
-    container.appendChild(empty);
+  // Skip the first track (now playing) and get the next 50
+  const prevTracks = uniqueTracks.slice(1, 6);
+
+  // Get the key of the current now playing track
+  const nowPlayingTrack = uniqueTracks[0];
+  const currentNowPlayingKey = nowPlayingTrack 
+    ? `${nowPlayingTrack?.artist?.["#text"] || FALLBACK.artist}::${nowPlayingTrack?.name || FALLBACK.song}`
+    : null;
+
+  const existingEntries = Array.from(container.querySelectorAll(".songEntry"));
+
+  // First run - create all 50 entries
+  if (existingEntries.length === 0) {
+    console.log("First run: creating 50 track entries");
+    
+    for (let i = 0; i < prevTracks.length; i++) {
+      const track = prevTracks[i];
+      await createTrackEntry(container, track, i);
+    }
+    
+    previousNowPlayingKey = currentNowPlayingKey;
     return;
   }
 
-  await Promise.all(
-    prevTracks.map(async (t, i) => {
-      const title = t?.name || FALLBACK.song;
-      const artist = t?.artist?.["#text"] || FALLBACK.artist;
-      const album = t?.album?.["#text"] || FALLBACK.album;
-      const url = t?.url || FALLBACK.url;
-      const entry = document.createElement("div");
-      entry.className = "songEntry";
-      entry.dataset.index = String(i + 1);
+  // Check if now playing song changed
+  if (previousNowPlayingKey !== currentNowPlayingKey) {
+    console.log("Now playing changed! Shifting tracks...");
+    previousNowPlayingKey = currentNowPlayingKey;
 
-      entry.addEventListener("click", () => {
-        const newWindow = window.open(url, "LastFM Previous Song", "height=400px,width=400px");
-        if (newWindow && newWindow.focus) {
-          newWindow.focus();
+    // Fade out only the last entry
+    if (existingEntries.length > 0) {
+      const lastEntry = existingEntries[existingEntries.length - 1];
+      lastEntry.style.animation = "fadeOut 0.4s ease-out forwards";
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    // Remove the last entry after it fades out
+    if (existingEntries.length > 0) {
+      existingEntries[existingEntries.length - 1].remove();
+    }
+
+    // Create and insert new entry at the top
+    if (prevTracks.length > 0) {
+      const newTrack = prevTracks[0];
+      const newEntry = await createTrackEntryElement(newTrack, 0);
+      
+      newEntry.style.opacity = "0";
+      newEntry.style.animation = "fadeIn 0.4s ease-out forwards";
+      
+      container.insertBefore(newEntry, container.firstChild);
+    }
+
+    // Update indices for all remaining entries
+    const remainingEntries = Array.from(container.querySelectorAll(".songEntry"));
+    remainingEntries.forEach((entry, idx) => {
+      entry.dataset.index = String(idx + 2);
+    });
+  } else {
+    // No song change, just update content if needed
+    const existingKeys = existingEntries.map((el) => el.dataset.trackKey);
+    const newKeys = prevTracks.map(
+      (t) => `${t?.artist?.["#text"] || FALLBACK.artist}::${t?.name || FALLBACK.song}`
+    );
+
+    const keysMatch = 
+      existingKeys.length === newKeys.length &&
+      existingKeys.every((key, i) => key === newKeys[i]);
+
+    if (!keysMatch) {
+      // Silent update - just update the data without animation
+      for (let i = 0; i < Math.min(existingEntries.length, prevTracks.length); i++) {
+        const track = prevTracks[i];
+        const entry = existingEntries[i];
+        const title = track?.name || FALLBACK.song;
+        const artist = track?.artist?.["#text"] || FALLBACK.artist;
+        const trackKey = `${artist}::${title}`;
+        
+        if (entry.dataset.trackKey !== trackKey) {
+          await updateTrackEntry(entry, track, i);
         }
-      });
-
-      // Get album art - now returns string directly or null
-      const art = await getSongLinks(artist, title, album);
-      
-      // Try Last.fm image if available
-      const lastFmImage = t?.image?.[3]?.["#text"] || "";
-
-      const img = document.createElement("img");
-      img.className = "songCover";
-      
-      // Priority: Songlink/Spotify > Last.fm > Fallback
-      if (art) {
-        img.src = art;
-      } else if (lastFmImage) {
-        img.src = lastFmImage;
-      } else {
-        img.src = '../src/images/album_art.png';
       }
+    }
+  }
+}
 
-      const textWrap = document.createElement("div");
-      textWrap.className = "songText";
+async function createTrackEntry(container, track, index) {
+  const entry = await createTrackEntryElement(track, index);
+  entry.style.opacity = "0";
+  entry.style.animation = `fadeIn 0.3s ease-out ${index * 0.05}s forwards`;
+  container.appendChild(entry);
+}
 
-      const h1 = document.createElement("h1");
-      h1.className = "songTitle";
-      h1.textContent = title;
+async function createTrackEntryElement(track, index) {
+  const title = track?.name || FALLBACK.song;
+  const artist = track?.artist?.["#text"] || FALLBACK.artist;
+  const album = track?.album?.["#text"] || FALLBACK.album;
+  const url = track?.url || FALLBACK.url;
+  const trackKey = `${artist}::${title}`;
 
-      const h2 = document.createElement("h2");
-      h2.className = "songArtist";
-      h2.textContent = artist;
+  const entry = document.createElement("div");
+  entry.className = "songEntry";
+  entry.dataset.index = String(index + 2); // +2 to account for skipping now playing
+  entry.dataset.trackKey = trackKey;
 
-      textWrap.appendChild(h1);
-      textWrap.appendChild(h2);
-      entry.appendChild(img);
-      entry.appendChild(textWrap);
-      container.appendChild(entry);
-    })
-  );
+  entry.addEventListener("click", () => {
+    const newWindow = window.open(url, "LastFM Previous Song", "height=400px,width=400px");
+    if (newWindow && newWindow.focus) {
+      newWindow.focus();
+    }
+  });
+
+  const img = document.createElement("img");
+  img.className = "songCover";
+
+  const textWrap = document.createElement("div");
+  textWrap.className = "songText";
+
+  const h1 = document.createElement("h1");
+  h1.className = "songTitle";
+  h1.textContent = title;
+
+  const h2 = document.createElement("h2");
+  h2.className = "songArtist";
+  h2.textContent = artist;
+
+  // Get album art
+  const art = await getSongLinks(artist, title, album);
+  const lastFmImage = track?.image?.[3]?.["#text"] || "";
+
+  if (art) {
+    img.src = art;
+  } else if (lastFmImage) {
+    img.src = lastFmImage;
+  } else {
+    img.src = '../src/images/album_art.png';
+  }
+
+  textWrap.appendChild(h1);
+  textWrap.appendChild(h2);
+  entry.appendChild(img);
+  entry.appendChild(textWrap);
+
+  return entry;
+}
+
+async function updateTrackEntry(entry, track, index) {
+  const title = track?.name || FALLBACK.song;
+  const artist = track?.artist?.["#text"] || FALLBACK.artist;
+  const album = track?.album?.["#text"] || FALLBACK.album;
+  const trackKey = `${artist}::${title}`;
+
+  entry.dataset.trackKey = trackKey;
+  entry.dataset.index = String(index + 2);
+
+  const h1 = entry.querySelector(".songTitle");
+  const h2 = entry.querySelector(".songArtist");
+  if (h1) h1.textContent = title;
+  if (h2) h2.textContent = artist;
+
+  const art = await getSongLinks(artist, title, album);
+  const lastFmImage = track?.image?.[3]?.["#text"] || "";
+  const img = entry.querySelector(".songCover");
+
+  if (img) {
+    let newSrc = '';
+    if (art) {
+      newSrc = art;
+    } else if (lastFmImage) {
+      newSrc = lastFmImage;
+    } else {
+      newSrc = '../src/images/album_art.png';
+    }
+    img.src = newSrc;
+  }
 }
 
 // Main update function
 async function updateNowPlaying() {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch(`${API_URL}?limit=50`);
     const data = await response.json();
 
     const track = data.recenttracks.track[0];
@@ -209,20 +329,32 @@ async function updateNowPlaying() {
     const url = track?.url || FALLBACK.url;
     const nowplaying = track?.["@attr"]?.nowplaying === "true";
 
-    // Update state
-    state.song = song;
-    state.artist = artist;
-    state.album = album;
-    state.nowplaying = nowplaying;
-    state.tracks = Array.isArray(data.recenttracks.track)
+    // Properly build tracks array - ensure it's always an array in the right order
+    let allTracks = Array.isArray(data.recenttracks.track)
       ? data.recenttracks.track
       : [data.recenttracks.track];
+    
+    // Last.fm returns in reverse chronological order (newest first)
+    // Make sure the now-playing track is first, then recent tracks
+    // Filter out duplicates by timestamp
+    const seenTimestamps = new Set();
+    allTracks = allTracks.filter((t) => {
+      const timestamp = t?.["@attr"]?.uts || t?.date?.uts;
+      if (!timestamp) return true; // Keep tracks without timestamps
+      if (seenTimestamps.has(timestamp)) return false;
+      seenTimestamps.add(timestamp);
+      return true;
+    });
+
+    state.tracks = allTracks;
 
     const currentKey = `${artist.trim()}::${song.trim()}`;
 
     // Check if song changed or if this is first run
     if (lockedSongKey !== currentKey) {
       lockedSongKey = null;
+
+      console.log('Song changed! Artist:', artist, 'Song:', song, 'Now playing:', nowplaying);
 
       // Try to get better album artwork
       const songLinkArt = await getSongLinks(artist, song, album);
@@ -290,17 +422,8 @@ async function updateNowPlaying() {
       }
     }
 
-    console.log("Track data:", {
-      song,
-      artist,
-      album,
-      nowplaying,
-      image: state.image,
-    });
-
     // Clear artwork cache after all fetches complete
     artworkCache.clear();
-    console.log("Artwork cache cleared");
 
   } catch (error) {
     console.error("Error fetching now playing data:", error);

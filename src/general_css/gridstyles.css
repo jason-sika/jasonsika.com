@@ -9,6 +9,11 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 0px;
+    box-sizing: content-box;
+}
+
+.gridItem#nowplaying {
+    width: 197.5px !important;
 }
 
 .gridTop {
@@ -50,13 +55,12 @@
 }
 
 #marquee {
-    width: 197.5px;
+    width: 196.5px;
     overflow: hidden !important;
     align-items: flex-end;
 }
 
 .marqueeContent {
-    width: max-content;
     display: flex;
     flex-direction: row;
     animation: marquee 10s linear infinite;
