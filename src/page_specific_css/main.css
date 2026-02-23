@@ -31,14 +31,14 @@ body {
     height: fit-content;
     margin: 0;
     gap: 10px;
-    background-color: #141414;
+    background-color: #ffffff;
     align-items: flex-start;
     justify-content: center;
     overflow: scroll;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #AFAFAF;
+    color: #000000;
     font-family: 'InterVariable', sans-serif !important;
     margin-block-start: 0px !important;
     margin-block-end: 0px !important;
@@ -48,7 +48,7 @@ h1, h2, h3, h4, h5, h6 {
 
 p {
     font-family: 'InterVariable', sans-serif !important;
-    color: #AFAFAF;
+    color: #000000;
     line-height: 1.6;
     font-size: 16px;
     margin-block-start: 0px !important;
@@ -115,6 +115,9 @@ footer {
     height: 24px !important;
 }
 
+gridTitle {
+    color: #ffffff !important;
+}
 
 .top {
     display: flex;

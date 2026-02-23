@@ -1,4 +1,4 @@
-const API_URL = `https://pull.jasonsika.com`; 
+const API_URL = `https://pull.jasonsika.com`;
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const INTERVAL_MS = 10_000;
 const PREV_MAX = 5;
@@ -30,6 +30,35 @@ const htmlalbum = document.getElementById("album");
 const htmlnowplaying = document.getElementById("nowplaying");
 const htmlin = document.getElementById("in");
 
+// jQuery boxRollovers effect for .stupidstack
+document.addEventListener("DOMContentLoaded", function() {
+  const stack = document.querySelector(".stupidstack");
+  if (!stack) return;
+  let XAngle = 0;
+  let YAngle = 0;
+  const Z = 20;
+
+  stack.addEventListener("mousemove", function(e) {
+    const rect = stack.getBoundingClientRect();
+    // Use the new smaller size for calculations
+    const width = 395;
+    const height = 415;
+    const XRel = Math.max(0, Math.min(width, e.clientX - rect.left));
+    const YRel = Math.max(0, Math.min(height, e.clientY - rect.top));
+    // Reduce tilt strength by lowering multiplier
+    const tiltStrength = 2;
+    YAngle = -(0.5 - (XRel / width)) * tiltStrength;
+    XAngle = (0.5 - (YRel / height)) * tiltStrength;
+    stack.style.transform = `perspective(525px) translateZ(${Z}px) rotateX(${XAngle}deg) rotateY(${YAngle}deg)`;
+    stack.style.transition = "none";
+  });
+
+  stack.addEventListener("mouseleave", function() {
+    stack.style.transform = "perspective(525px) translateZ(0) rotateX(0deg) rotateY(0deg)";
+    stack.style.transition = "all 150ms linear 0s";
+  });
+});
+
 // CODE FROM CLAUDE - FIXED
 function buildSearchUrl(artist, song, album) {
   if (!artist || !song) {
@@ -55,27 +84,27 @@ async function getSongLinks(artist, song, album) {
     // Try with album first if available
     let searchUrl = buildSearchUrl(artist, song, album);
     if (!searchUrl) return null;
-    
+
     let searchRes = await fetch(searchUrl);
-    
+
     // If 404 and we had an album, try without album
     if (searchRes.status === 404 && album && album.trim()) {
       searchUrl = buildSearchUrl(artist, song, null);
       if (!searchUrl) return null;
       searchRes = await fetch(searchUrl);
     }
-    
+
     // If still 404, return null to try Last.fm fallback
     if (searchRes.status === 404) {
       return null;
     }
-    
+
     if (!searchRes.ok) {
       return null;
     }
-    
+
     const searchData = await searchRes.json();
-    
+
     // Return album art directly from API (includes Songlink art)
     return searchData.album_art || null;
 
@@ -129,7 +158,7 @@ async function renderPreviousTracks(tracks = []) {
   // Filter duplicates - keep only first occurrence of each track
   const seenTracks = new Set();
   const uniqueTracks = [];
-  
+
   for (const track of tracks) {
     const trackKey = `${track?.artist?.["#text"] || FALLBACK.artist}::${track?.name || FALLBACK.song}`;
     if (!seenTracks.has(trackKey)) {
@@ -143,7 +172,7 @@ async function renderPreviousTracks(tracks = []) {
 
   // Get the key of the current now playing track
   const nowPlayingTrack = uniqueTracks[0];
-  const currentNowPlayingKey = nowPlayingTrack 
+  const currentNowPlayingKey = nowPlayingTrack
     ? `${nowPlayingTrack?.artist?.["#text"] || FALLBACK.artist}::${nowPlayingTrack?.name || FALLBACK.song}`
     : null;
 
@@ -152,12 +181,12 @@ async function renderPreviousTracks(tracks = []) {
   // First run - create all 50 entries
   if (existingEntries.length === 0) {
     console.log("First run: creating 50 track entries");
-    
+
     for (let i = 0; i < prevTracks.length; i++) {
       const track = prevTracks[i];
       await createTrackEntry(container, track, i);
     }
-    
+
     previousNowPlayingKey = currentNowPlayingKey;
     return;
   }
@@ -170,10 +199,10 @@ async function renderPreviousTracks(tracks = []) {
     // Fade out only the last entry
     if (existingEntries.length > 0) {
       const lastEntry = existingEntries[existingEntries.length - 1];
-      lastEntry.style.animation = "fadeOut 0.4s ease-out forwards";
+      lastEntry.style.animation = "fadeOut 0.5s ease-out forwards";
     }
 
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Remove the last entry after it fades out
     if (existingEntries.length > 0) {
@@ -184,10 +213,10 @@ async function renderPreviousTracks(tracks = []) {
     if (prevTracks.length > 0) {
       const newTrack = prevTracks[0];
       const newEntry = await createTrackEntryElement(newTrack, 0);
-      
+
       newEntry.style.opacity = "0";
-      newEntry.style.animation = "fadeIn 0.4s ease-out forwards";
-      
+      newEntry.style.animation = "fadeIn 0.5s ease-out forwards";
+
       container.insertBefore(newEntry, container.firstChild);
     }
 
@@ -203,7 +232,7 @@ async function renderPreviousTracks(tracks = []) {
       (t) => `${t?.artist?.["#text"] || FALLBACK.artist}::${t?.name || FALLBACK.song}`
     );
 
-    const keysMatch = 
+    const keysMatch =
       existingKeys.length === newKeys.length &&
       existingKeys.every((key, i) => key === newKeys[i]);
 
@@ -215,7 +244,7 @@ async function renderPreviousTracks(tracks = []) {
         const title = track?.name || FALLBACK.song;
         const artist = track?.artist?.["#text"] || FALLBACK.artist;
         const trackKey = `${artist}::${title}`;
-        
+
         if (entry.dataset.trackKey !== trackKey) {
           await updateTrackEntry(entry, track, i);
         }
@@ -227,7 +256,7 @@ async function renderPreviousTracks(tracks = []) {
 async function createTrackEntry(container, track, index) {
   const entry = await createTrackEntryElement(track, index);
   entry.style.opacity = "0";
-  entry.style.animation = `fadeIn 0.3s ease-out ${index * 0.05}s forwards`;
+  entry.style.animation = `fadeIn 0.5s ease-out ${index * 0.05}s forwards`;
   container.appendChild(entry);
 }
 
@@ -317,6 +346,18 @@ async function updateTrackEntry(entry, track, index) {
 
 // Main update function
 async function updateNowPlaying() {
+// Remove fadeIn animation style after animation completes
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.addEventListener('animationend', function(e) {
+    if (e.animationName === 'fadeIn' && e.target.classList.contains('songEntry')) {
+      e.target.style.animation = '';
+      // Ensure final state is visible and styled
+      e.target.style.opacity = '1';
+      e.target.style.filter = 'blur(0px) brightness(1)';
+      e.target.style.transform = 'translateY(0px)';
+    }
+  }, true);
+});
   try {
     const response = await fetch(`${API_URL}?limit=50`);
     const data = await response.json();
@@ -333,7 +374,7 @@ async function updateNowPlaying() {
     let allTracks = Array.isArray(data.recenttracks.track)
       ? data.recenttracks.track
       : [data.recenttracks.track];
-    
+
     // Last.fm returns in reverse chronological order (newest first)
     // Make sure the now-playing track is first, then recent tracks
     // Filter out duplicates by timestamp
@@ -358,7 +399,7 @@ async function updateNowPlaying() {
 
       // Try to get better album artwork
       const songLinkArt = await getSongLinks(artist, song, album);
-      
+
       // Priority: Songlink/Spotify > Last.fm > Fallback
       if (songLinkArt && songLinkArt !== '../src/images/album_art.png') {
         state.image = songLinkArt;
@@ -390,46 +431,52 @@ async function updateNowPlaying() {
           newWindow.focus();
         }
       });
-    }
 
-    // Handle album visibility
-    const albumEmpty = !album.trim();
-    const albumEqualsSong = album === song;
-
-    if (htmlin) {
-      htmlin.style.visibility =
-        albumEmpty || albumEqualsSong ? "hidden" : "visible";
-    }
-
-    if (htmlalbum) {
-      htmlalbum.style.visibility = albumEqualsSong ? "hidden" : "visible";
-    }
-
-    // Render previous tracks if container exists
-    await renderPreviousTracks(state.tracks);
-
-    // Fetch and display lyrics if element exists
-    const lyricsEl = document.querySelector("#nowLyrics");
-    if (lyricsEl && !lockedSongKey) {
-      lyricsEl.textContent = "Loading lyrics...";
-      const lyrics = await fetchLrclibLyrics(artist, song);
-
-      if (lyrics) {
-        lyricsEl.textContent = lyrics;
-        lockedSongKey = currentKey;
-      } else {
-        lyricsEl.textContent = "No lyrics found.";
+      // Set album art background on .lyricsContainer via CSS variable
+      const body = document.querySelector('body');
+      if (body && state.image) {
+        body.style.setProperty('--album-art-bg', `url('${state.image}')`);
       }
+      }
+
+      // Handle album visibility
+      const albumEmpty = !album.trim();
+      const albumEqualsSong = album === song;
+
+      if (htmlin) {
+        htmlin.style.visibility =
+          albumEmpty || albumEqualsSong ? "hidden" : "visible";
+      }
+
+      if (htmlalbum) {
+        htmlalbum.style.visibility = albumEqualsSong ? "hidden" : "visible";
+      }
+
+      // Render previous tracks if container exists
+      await renderPreviousTracks(state.tracks);
+
+      // Fetch and display lyrics if element exists
+      const lyricsEl = document.querySelector("#nowLyrics");
+      if (lyricsEl && !lockedSongKey) {
+        lyricsEl.textContent = "Loading lyrics...";
+        const lyrics = await fetchLrclibLyrics(artist, song);
+
+        if (lyrics) {
+          lyricsEl.textContent = lyrics;
+          lockedSongKey = currentKey;
+        } else {
+          lyricsEl.textContent = "No lyrics found.";
+        }
+      }
+
+      // Clear artwork cache after all fetches complete
+      artworkCache.clear();
+
+    } catch (error) {
+      console.error("Error fetching now playing data:", error);
     }
-
-    // Clear artwork cache after all fetches complete
-    artworkCache.clear();
-
-  } catch (error) {
-    console.error("Error fetching now playing data:", error);
   }
-}
 
 // Initialize
 updateNowPlaying();
-setInterval(updateNowPlaying, INTERVAL_MS);
+  setInterval(updateNowPlaying, INTERVAL_MS);
