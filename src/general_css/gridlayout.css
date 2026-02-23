@@ -45,11 +45,11 @@
 
 @media only screen and (max-width: 600px) {
 .mainGrid {
-    width: 520px;
-    grid-template-columns: 197.5px 197.5px;
-    grid-template-rows: 197.5px 197.5px;
-    gap: 10px;
-    display: grid;
+    width: 520px !important;
+    grid-template-columns: 197.5px 197.5px !important;
+    grid-template-rows: 197.5px 197.5px !important;
+    gap: 10px !important;
+    display: grid !important;
 }
 
 .gridItem#about {

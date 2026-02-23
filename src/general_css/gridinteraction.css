@@ -8,12 +8,6 @@
     transition: 0.5s ease;
 }
 
-.gridItem:hover {
-    transform: scale(1.2);
-    transition: 0.3s ease;
-    z-index: 10;
-}
-
 .gridItem:active {
     transform: scale(0.95);
     transition: 0.3s ease;
@@ -22,6 +16,7 @@
 .mainGrid {
     transform: scale(1);
     transition: 0.3s ease-out;
+    perspective: 1000px;
 }
 
 .mainGrid:hover {
@@ -36,10 +31,66 @@
     }
 }
 
-.gridItem:hover {
+.gridItem::before{
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index:-1;
+  /* border:1px solid green;  for demo purposes */
+}
+
+#about:hover {
     opacity: 1 !important;
+    z-index: 10;
     filter: blur(0px) !important;
     filter: drop-shadow(#fff);
+    transition: 0.2s ease-out;
+    transform-style: preserve-3d;
+    transform: rotateX(-10deg) rotateY(10deg) scale(1.2);
+}
+
+#designs:hover {
+    opacity: 1 !important;
+    z-index: 10;
+    filter: blur(0px) !important;
+    filter: drop-shadow(#fff);
+    transition: 0.2s ease-out;
+    transform-style: preserve-3d;
+    transform: rotateX(-10deg) rotateY(0deg) scale(1.2);
+}
+
+#support:hover {
+    opacity: 1 !important;
+    z-index: 10;
+    filter: blur(0px) !important;
+    filter: drop-shadow(#fff);
+    transition: 0.2s ease-out;
+    transform-style: preserve-3d;
+    transform: rotateX(10deg) rotateY(10deg) scale(1.2);
+}
+
+#nowplaying:hover {
+    opacity: 1 !important;
+    z-index: 10;
+    filter: blur(0px) !important;
+    filter: drop-shadow(#fff);
+    transition: 0.2s ease-out;
+    transform-style: preserve-3d;
+    transform: rotateX(10deg) rotateY(0deg) scale(1.2);
+}
+
+#resume:hover {
+    opacity: 1 !important;
+    z-index: 10;
+    filter: blur(0px) !important;
+    filter: drop-shadow(#fff);
+    transition: 0.2s ease-out;
+    transform-style: preserve-3d;
+    transform: rotateX(0deg) rotateY(-10deg) scale(1.2);
 }
 
 .gridItem:hover:after {
