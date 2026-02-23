@@ -55,7 +55,7 @@ p {
     padding: 5px 0;
     border-radius: 6px;
     position: absolute;
-    z-index: 4;
+    z-index: 5 !important;
 }
 
 #alogo {
@@ -447,8 +447,10 @@ h2 {
 }
 
 footer {
+    position: relative;
     margin-left: 20px;
     padding: 10px !important;
+    z-index: 2;
 }
 
 .footer1 {
