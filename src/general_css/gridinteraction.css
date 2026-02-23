@@ -50,7 +50,7 @@
     filter: drop-shadow(#fff);
     transition: 0.2s ease-out;
     transform-style: preserve-3d;
-    transform: rotateX(-10deg) rotateY(10deg) scale(1.2);
+    transform: scale(1.2);
 }
 
 #designs:hover {
@@ -60,7 +60,7 @@
     filter: drop-shadow(#fff);
     transition: 0.2s ease-out;
     transform-style: preserve-3d;
-    transform: rotateX(-10deg) rotateY(0deg) scale(1.2);
+    transform: scale(1.2);
 }
 
 #support:hover {
@@ -70,7 +70,7 @@
     filter: drop-shadow(#fff);
     transition: 0.2s ease-out;
     transform-style: preserve-3d;
-    transform: rotateX(10deg) rotateY(10deg) scale(1.2);
+    transform: scale(1.2);
 }
 
 #nowplaying:hover {
@@ -80,7 +80,7 @@
     filter: drop-shadow(#fff);
     transition: 0.2s ease-out;
     transform-style: preserve-3d;
-    transform: rotateX(10deg) rotateY(0deg) scale(1.2);
+    transform: scale(1.2);
 }
 
 #resume:hover {
@@ -90,7 +90,7 @@
     filter: drop-shadow(#fff);
     transition: 0.2s ease-out;
     transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(-10deg) scale(1.2);
+    transform: scale(1.2);
 }
 
 .gridItem:hover:after {

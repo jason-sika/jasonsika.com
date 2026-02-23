@@ -420,17 +420,22 @@ document.addEventListener('DOMContentLoaded', function() {
       htmlnowplaying.style.backgroundSize = "cover";
       htmlnowplaying.style.backgroundPosition = "center";
 
-      htmlnowplaying.addEventListener("click", () => {
-        const newWindow = window.open(
-          url,
-          "LastFM Now Playing",
-          "height=400,width=400"
-        );
 
-        if (newWindow && newWindow.focus) {
-          newWindow.focus();
-        }
-      });
+      // Only add Last.fm click handler if on music.html
+      if (window.location.pathname.endsWith("music.html")) {
+        htmlnowplaying.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const newWindow = window.open(
+            url,
+            "LastFM Now Playing",
+            "height=400,width=400"
+          );
+          if (newWindow && newWindow.focus) {
+            newWindow.focus();
+          }
+        });
+      }
 
       // Set album art background on .lyricsContainer via CSS variable
       const body = document.querySelector('body');
