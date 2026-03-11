@@ -1,4 +1,4 @@
-const API_URL = `https://pull.jasonsika.com`;
+const API_URL = `https://bknd-js-sk.vercel.app/`;
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const INTERVAL_MS = 10_000;
 const PREV_MAX = 5;
@@ -76,7 +76,7 @@ function buildSearchUrl(artist, song, album) {
 
   q += "_" + format(song);
 
-  return `https://pull.jasonsika.com/api/search?q=${q}`;
+  return `https://https://bknd-js-sk.vercel.app//api/search?q=${q}`;
 }
 
 async function getSongLinks(artist, song, album) {
