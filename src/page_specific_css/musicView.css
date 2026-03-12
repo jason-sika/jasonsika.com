@@ -484,7 +484,6 @@ footer {
     background-size: cover;
 }
 
-/* from claude */
 @keyframes fadeIn {
     from {
         transform: translateY(-10px);
